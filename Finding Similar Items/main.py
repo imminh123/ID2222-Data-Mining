@@ -1,6 +1,7 @@
-import pandas as pd
 from shingling import Shingling
 from compare_sets import CompareSets
+from minhashing import MinHash
+from compare_signatures import CompareSignatures
 import glob
 import os
 
@@ -27,6 +28,10 @@ with open(original_file, 'r') as file:
             compare_sets = CompareSets(original_shingles, suspicious_shingles)
             jaccard_similarity = compare_sets.jaccard_similarity()
             print(jaccard_similarity)
+
+    minhashing = MinHash(original_shingles, 100)
+    signature = minhashing.get_signature()
+    print(signature)
 
 
 
