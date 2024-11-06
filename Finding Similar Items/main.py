@@ -7,76 +7,130 @@ import glob
 import os
 import pandas as pd
 import numpy as np
+import time
+import sys
 
-# read txt file from /data/plagiarism/original
-original_file = 'data/plagiarism/original/source-document01503.txt'
-suspicious = 'data/plagiarism/suspicious'
+# Save the default standard output
+default_stdout = sys.stdout
 
+# Open the file you want to redirect output to
+f = open(f"results.txt", "w")
+
+# Change standard output to point to the file
+sys.stdout = f
+
+# Paths for original and suspicious files
+original_file = "data/plagiarism/original/source-document01503.txt"
+suspicious_dir = "data/plagiarism/suspicious"
+
+# Initialize Shingling with k-shingle length of 3
 shingling = Shingling(3)
 
-with open(original_file, 'r') as file:
-    text = file.read()
+# Measure time for reading and shingling the original document
+start_time = time.time()
+with open(original_file, "r") as file:
+    text = file.read().lower()
+    original_shingles = shingling.shingle(text)
+print(
+    f"Time to read and shingle original document: {time.time() - start_time:.2f} seconds"
+)
 
-    original_shingles = shingling.shingle(text.lower())
-    minhashing = MinHash(original_shingles, 100)
-    signature = minhashing.get_signature()
+# Measure time for MinHash generation for the original document
+start_time = time.time()
+minhashing = MinHash(original_shingles, 100)
+original_signature = minhashing.get_signature()
+print(
+    f"Time to generate MinHash signature for original document: {time.time() - start_time:.2f} seconds"
+)
 
-    # read each file in suspicious folder
-    # Loop through all .txt files in the folder
-    jaccard_similarites = []
-    compare_signatures_list = []
+# Initialize lists for storing Jaccard similarities and signature comparisons
+jaccard_similarities = []
+signature_similarities = []
+suspicious_files = []
 
-    for file_path in glob.glob(os.path.join(suspicious, '*.txt')):
-      
-        with open(file_path, 'r') as file:
-            content = file.read()
+# Process each file in the suspicious folder
+start_total_time = time.time()  # Start timing for the entire suspicious file processing
+for file_path in glob.glob(os.path.join(suspicious_dir, "*.txt")):
+    with open(file_path, "r") as file:
+        # Extract content and file name for display
+        content = file.read().lower()
+        filename = os.path.basename(file.name)
+        suspicious_files.append(filename)
 
-            # print only file name, no path
-            print(file.name.split('/')[-1])
+        # Calculate Jaccard Similarity
+        start_time = time.time()
+        suspicious_shingles = shingling.shingle(content)
+        compare_sets = CompareSets(original_shingles, suspicious_shingles)
+        jaccard_similarity = compare_sets.jaccard_similarity()
+        jaccard_similarities.append(jaccard_similarity)
+        print(
+            f"Time to calculate Jaccard similarity for {filename}: {time.time() - start_time:.2f} seconds"
+        )
 
-            suspicious_shingles = shingling.shingle(content.lower())
+        # Generate MinHash signature for the suspicious document and compare
+        start_time = time.time()
+        suspicious_minhashing = MinHash(suspicious_shingles, 100)
+        suspicious_signature = suspicious_minhashing.get_signature()
+        compare_signatures = CompareSignatures(original_signature, suspicious_signature)
+        signature_similarity = compare_signatures.compare()
+        signature_similarities.append(signature_similarity)
+        print(
+            f"Time to generate and compare MinHash signature for {filename}: {time.time() - start_time:.2f} seconds"
+        )
 
-            compare_sets = CompareSets(original_shingles, suspicious_shingles)
-            jaccard_similarity = compare_sets.jaccard_similarity()
-            jaccard_similarites.append(jaccard_similarity)
-            
-            # Generate minhash signature & compare
-            minhashing = MinHash(suspicious_shingles, 100)
-            suspicious_signature = minhashing.get_signature()
-            compare_signatures = CompareSignatures(signature, suspicious_signature)
-            compare_signatures_list.append(compare_signatures.compare())
+# End timing for suspicious file processing
+print(
+    f"\nTotal time to process all suspicious files: {time.time() - start_total_time:.2f} seconds"
+)
 
-    df = pd.DataFrame({'Jaccard Similarities': jaccard_similarites, 'Minhasing Signature': compare_signatures_list})
-    print(df)
+# Create a DataFrame to store results
+df = pd.DataFrame(
+    {
+        "File": suspicious_files,
+        "Jaccard Similarity": jaccard_similarities,
+        "MinHash Signature Similarity": signature_similarities,
+    }
+)
+# Set pandas display options to show all columns
+pd.set_option("display.max_columns", None)
+pd.set_option("display.width", None)
+
+# Print the DataFrame with all columns visible
+print(df)
 
 
-# Test LSH
+# LSH: Collect signatures for all documents (including suspicious and original)
 all_signatures = []
-for file_path in glob.glob(os.path.join('data/plagiarism', '**/*.txt'), recursive=True):
-    with open(file_path, 'r') as file:
-        print(file.name)
-        content = file.read()
-        shingles = shingling.shingle(content.lower())
 
+start_time = time.time()  # Start timing for LSH signature generation
+for file_path in glob.glob(os.path.join("data/plagiarism", "**/*.txt"), recursive=True):
+    with open(file_path, "r") as file:
+        content = file.read().lower()
+        shingles = shingling.shingle(content)
+
+        # Generate and collect MinHash signature
         minhashing = MinHash(shingles, 100)
         signature = minhashing.get_signature()
-        
         all_signatures.append(signature)
+print(f"\nTime to generate signatures for LSH: {time.time() - start_time:.2f} seconds")
 
-# Create a matrix with all the signatures
-M = np.array(all_signatures).T
-lsh = LSH(M, 0.55, 20)
+# Create signature matrix for LSH
+signature_matrix = np.array(all_signatures).T
 
-# Run the LSH algorithm
+# Measure time for running LSH
+start_time = time.time()
+# s = (1/b)^(1/r) = (1/20)^(1/5) = 0.55
+lsh = LSH(signature_matrix, threshold=0.55, bands=20)
 similar_pairs = lsh.run()
+print(
+    f"Time to run LSH and find similar document pairs: {time.time() - start_time:.2f} seconds"
+)
 
+# Output similar document pairs
 print("Similar document pairs:", similar_pairs)
 
+# Change standard output back to default
+sys.stdout = default_stdout
 
-
-
-
-
-
-
-
+# Close the file
+f.close()
