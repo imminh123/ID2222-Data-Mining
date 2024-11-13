@@ -103,8 +103,13 @@ print(df)
 all_signatures = []
 
 start_time = time.time()  # Start timing for LSH signature generation
+index = 0
 for file_path in glob.glob(os.path.join("data/plagiarism", "**/*.txt"), recursive=True):
     with open(file_path, "r") as file:
+        # print processing file name (exclude path) and index auto increment
+        print(f"{index}: {os.path.basename(file_path)}")
+        index += 1
+
         content = file.read().lower()
         shingles = shingling.shingle(content)
 

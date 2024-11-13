@@ -8,6 +8,9 @@ class CompareSets:
         self.set_2 = set_2
 
     def jaccard_similarity(self):
+        # Calculate the intersection 
         intersection = len(self.set_1.intersection(self.set_2))
+
+        # Calculate the union 
         union = len(self.set_1.union(self.set_2))
         return intersection / union

@@ -34,12 +34,8 @@ class MinHash:
         # Initialize the signature array with infinity to ensure any hash value will be smaller
         signature = np.full(self.num_hashes, np.inf)
 
-        a = hash_parameters[:, 0]
-        b = hash_parameters[:, 1]
-
         # Calculate hash values for each shingle and update the signature with minimum values
         for shingle in self.shingles:
-            d = (hash_parameters[:, 0] * shingle + hash_parameters[:, 1]) % c
             # Compute hash values using the formula h(x) = (ax + b) % c for each hash function
             hash_values = (hash_parameters[:, 0] * shingle + hash_parameters[:, 1]) % c
             
