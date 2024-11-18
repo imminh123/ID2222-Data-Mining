@@ -94,7 +94,7 @@ def generate_candidates(frequent_itemsets, k):
     return candidates
 
 
-def filter_candidates(candidates, transactions, support_threshold):
+def filter_candidates(candidates, transactions, support):
     """
     Filters candidate itemsets based on their support in the dataset.
 
@@ -122,7 +122,7 @@ def filter_candidates(candidates, transactions, support_threshold):
     # Retain only candidates meeting the support threshold
     filtered_candidates = {}
     for candidate, count in candidate_counts.items():
-        if count >= support_threshold:
+        if count >= support:
             filtered_candidates[candidate] = count
 
     return filtered_candidates
