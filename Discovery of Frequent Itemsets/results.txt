@@ -772,10 +772,14 @@
 
 {704} -> {39} with confidence: 0.62
 
+{227} -> {390} with confidence: 0.58
+
+{704} -> {825, 39} with confidence: 0.58
+
 {704, 825} -> {39} with confidence: 0.94
 
 {704, 39} -> {825} with confidence: 0.93
 
 {825, 39} -> {704} with confidence: 0.87
 
-Total time: 183.43270087242126
+Total time: 254.2240240573883

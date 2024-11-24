@@ -219,7 +219,7 @@ def main():
     # Define thresholds
     support_threshold = 0.01  # 1% of total transactions (from lecture slides)
     support = int(num_transactions * support_threshold)
-    confidence = 0.6  # Minimum confidence
+    confidence = 0.5  # Minimum confidence
     k_tuple = 3  # Maximum size of itemsets to consider
 
     # Run A-Priori algorithm
