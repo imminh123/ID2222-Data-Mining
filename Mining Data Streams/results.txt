@@ -1,0 +1,6 @@
+Running the algorithm with M = 5000.
+The estimated number of triangles is 1572569.2449024557.
+Time to run Triest Base: 11.24 seconds
+Running the algorithm with M = 1000.
+The estimated number of triangles is 1711174.7033613606.
+Time to run Triest Improved: 5.85 seconds
