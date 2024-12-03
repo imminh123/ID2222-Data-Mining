@@ -81,14 +81,14 @@ def num_clusters(eigen_values):
 
 def eigenvector_matrix(L):
     """
-    Perform eigenvector decomposition and compute the k smallest eigenvectors.
+    Perform eigenvector decomposition and compute the k largest eigenvectors.
     
     Args:
         L (ndarray): Normalized Laplacian matrix.
     
     Returns:
         tuple: A tuple containing:
-            - X (ndarray): Matrix of the k smallest eigenvectors (n x k).
+            - X (ndarray): Matrix of the k largest eigenvectors (n x k).
             - k (int): Optimal number of clusters.
             - X_values (list): Eigenvalues of the Laplacian matrix.
             - fiedler_vec (list): The Fiedler vector (second smallest eigenvector).
